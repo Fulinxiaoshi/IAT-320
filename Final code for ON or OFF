@@ -1,0 +1,188 @@
+#include <Wire.h>
+#include <Adafruit_Sensor.h>
+#include <Adafruit_TSL2561_U.h>
+#include "Adafruit_FloraPixel.h"
+
+Adafruit_TSL2561_Unified tsl = Adafruit_TSL2561_Unified(TSL2561_ADDR_FLOAT, 12345);
+
+//strip
+
+#include <Adafruit_NeoPixel.h>
+#ifdef __AVR__
+ #include <avr/power.h> // Required for 16 MHz Adafruit Trinket
+#endif
+
+#define LED_PIN    10
+#define LED_PIN2   6
+#define LED_COUNT 3
+#define LED_COUNT2 2
+
+// Declare our NeoPixel strip object:
+Adafruit_NeoPixel strip(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel strip2(LED_COUNT, LED_PIN2, NEO_GRB + NEO_KHZ800);
+// Argument 1 = Number of pixels in NeoPixel strip
+// Argument 2 = Arduino pin number (most are valid)
+// Argument 3 = Pixel type flags, add together as needed:
+//   NEO_KHZ800  800 KHz bitstream (most NeoPixel products w/WS2812 LEDs)
+//   NEO_KHZ400  400 KHz (classic 'v1' (not v2) FLORA pixels, WS2811 drivers)
+//   NEO_GRB     Pixels are wired for GRB bitstream (most NeoPixel products)
+//   NEO_RGB     Pixels are wired for RGB bitstream (v1 FLORA pixels, not v2)
+//   NEO_RGBW    Pixels are wired for RGBW bitstream (NeoPixel RGBW products)
+
+void displaySensorDetails(void)
+{
+  sensor_t sensor;
+  tsl.getSensor(&sensor);
+  Serial.println("------------------------------------");
+  Serial.print  ("Sensor:       "); Serial.println(sensor.name);
+  Serial.print  ("Driver Ver:   "); Serial.println(sensor.version);
+  Serial.print  ("Unique ID:    "); Serial.println(sensor.sensor_id);
+  Serial.print  ("Max Value:    "); Serial.print(sensor.max_value); Serial.println(" lux");
+  Serial.print  ("Min Value:    "); Serial.print(sensor.min_value); Serial.println(" lux");
+  Serial.print  ("Resolution:   "); Serial.print(sensor.resolution); Serial.println(" lux");  
+  Serial.println("------------------------------------");
+  Serial.println("");
+  //delay(500);
+}
+
+void configureSensor(void)
+{
+  /* You can also manually set the gain or enable auto-gain support */
+  // tsl.setGain(TSL2561_GAIN_1X);      /* No gain ... use in bright light to avoid sensor saturation */
+  // tsl.setGain(TSL2561_GAIN_16X);     /* 16x gain ... use in low light to boost sensitivity */
+  tsl.enableAutoRange(true);            /* Auto-gain ... switches automatically between 1x and 16x */
+  
+  /* Changing the integration time gives you better sensor resolution (402ms = 16-bit data) */
+  tsl.setIntegrationTime(TSL2561_INTEGRATIONTIME_13MS);      /* fast but low resolution */
+  // tsl.setIntegrationTime(TSL2561_INTEGRATIONTIME_101MS);  /* medium resolution and speed   */
+  // tsl.setIntegrationTime(TSL2561_INTEGRATIONTIME_402MS);  /* 16-bit data but slowest conversions */
+
+  /* Update these values depending on what you've set above! */  
+  Serial.println("------------------------------------");
+  Serial.print  ("Gain:         "); Serial.println("Auto");
+  Serial.print  ("Timing:       "); Serial.println("13 ms");
+  Serial.println("------------------------------------");
+}
+
+
+void setup()                    
+{
+  Serial.begin(9600);
+
+//light sensor
+  Serial.println("Light Sensor Test"); Serial.println("");
+  
+  /* Initialise the sensor */
+  //use tsl.begin() to default to Wire, 
+  //tsl.begin(&Wire2) directs api to use Wire2, etc.
+  if(!tsl.begin())
+  {
+    /* There was a problem detecting the TSL2561 ... check your connections */
+    Serial.print("Ooops, no TSL2561 detected ... Check your wiring or I2C ADDR!");
+    while(1);
+  }
+  
+  /* Display some basic information on this sensor */
+  displaySensorDetails();
+  
+  /* Setup the sensor gain and integration time */
+  configureSensor();
+  
+  /* We're ready to go! */
+  Serial.println("");   
+
+
+
+#if defined(__AVR_ATtiny85__) && (F_CPU == 16000000)
+  clock_prescale_set(clock_div_1);
+#endif
+  // END of Trinket-specific code.
+
+  strip.begin();           // INITIALIZE NeoPixel strip object (REQUIRED)
+  strip.show();            // Turn OFF all pixels ASAP
+
+
+  strip2.begin();           
+  strip2.show();            
+
+
+}
+
+void colorWipe(uint32_t color, int wait) {
+  for(int i=0; i<strip.numPixels(); i++) { // For each pixel in strip...
+    strip.setPixelColor(i, color);         //  Set pixel's color (in RAM)
+    strip.show();                          //  Update strip to match
+    delay(wait);                           //  Pause for a moment
+  }
+}
+
+void colorWipe2(uint32_t color, int wait) {
+  for(int i=0; i<strip.numPixels(); i++) { // For each pixel in strip...
+    strip2.setPixelColor(i, color);         //  Set pixel's color (in RAM)
+    strip2.show();                          //  Update strip to match
+    delay(wait);                           //  Pause for a moment
+  }
+}
+
+void loop()                    
+{
+  /* Get a new sensor event */ 
+  sensors_event_t event;
+  tsl.getEvent(&event);
+
+  /* Display the results (light is measured in lux) */
+  if (event.light)
+  {
+    Serial.print(event.light); Serial.println(" lux");
+  }
+  else
+  {
+    /* If event.light = 0 lux the sensor is probably saturated
+       and no reliable data could be generated! */
+    Serial.println("Sensor overload");
+  }
+  delay(250);
+
+    
+if (event.light < 50){
+
+  digitalWrite(7, HIGH);
+
+  for (int i = 0; i < 20; i++){
+    strip.setBrightness(i);
+    colorWipe(strip.Color(255,0,0),20);
+}
+  for (int i = 20; i > 0; i--){
+    strip.setBrightness(i);
+    colorWipe(strip.Color(255,0,0),20);
+
+}
+
+
+}
+
+if (event.light > 50){
+  colorWipe(strip.Color(  0, 0,   0), 0);
+}
+
+if (event.light > 50){
+  for (int j = 0; j< 80; j++){
+    strip2.setBrightness(j);
+    colorWipe2(strip2.Color(255,   255,   255), 10);
+  }
+  for (int j = 80; j> 0; j--){
+    strip2.setBrightness(j);
+    colorWipe2(strip2.Color(255,   255,   255), 10);
+  }
+}
+
+
+if (event.light < 50){
+  colorWipe2(strip2.Color(0,   0,   0), 0);
+}
+
+}
+
+
+
+
