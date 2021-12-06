@@ -144,7 +144,7 @@ void loop()
   delay(250);
 
     
-if (event.light < 50){
+if (event.light < 4){
 
   digitalWrite(7, HIGH);
 
@@ -161,11 +161,11 @@ if (event.light < 50){
 
 }
 
-if (event.light > 50){
+if (event.light > 4){
   colorWipe(strip.Color(  0, 0,   0), 0);
 }
 
-if (event.light > 50){
+if (event.light > 4){
   for (int j = 0; j< 80; j++){
     strip2.setBrightness(j);
     colorWipe2(strip2.Color(255,   255,   255), 10);
@@ -177,7 +177,7 @@ if (event.light > 50){
 }
 
 
-if (event.light < 50){
+if (event.light < 4){
   colorWipe2(strip2.Color(0,   0,   0), 0);
 }
 
