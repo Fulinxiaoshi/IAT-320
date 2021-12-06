@@ -92,7 +92,6 @@ void setup()
   Serial.println("");   
 
 
-
 #if defined(__AVR_ATtiny85__) && (F_CPU == 16000000)
   clock_prescale_set(clock_div_1);
 #endif
@@ -101,10 +100,8 @@ void setup()
   strip.begin();           // INITIALIZE NeoPixel strip object (REQUIRED)
   strip.show();            // Turn OFF all pixels ASAP
 
-
   strip2.begin();           
   strip2.show();            
-
 
 }
 
@@ -144,45 +141,35 @@ void loop()
   delay(250);
 
     
-if (event.light < 4){
-
+if (event.light < 4){// red pixels light up
   digitalWrite(7, HIGH);
 
-  for (int i = 0; i < 20; i++){
+  for (int i = 0; i < 20; i++){//fading loop
     strip.setBrightness(i);
     colorWipe(strip.Color(255,0,0),20);
 }
-  for (int i = 20; i > 0; i--){
+  for (int i = 20; i > 0; i--){//fading loop
     strip.setBrightness(i);
     colorWipe(strip.Color(255,0,0),20);
-
+}
 }
 
-
-}
-
-if (event.light > 4){
+if (event.light > 4){//red pixels turn off
   colorWipe(strip.Color(  0, 0,   0), 0);
 }
 
-if (event.light > 4){
-  for (int j = 0; j< 80; j++){
+if (event.light > 4){//white pixels light up
+  for (int j = 0; j< 80; j++){//fading loop
     strip2.setBrightness(j);
     colorWipe2(strip2.Color(255,   255,   255), 10);
   }
-  for (int j = 80; j> 0; j--){
+  for (int j = 80; j> 0; j--){//fading loop
     strip2.setBrightness(j);
     colorWipe2(strip2.Color(255,   255,   255), 10);
   }
 }
 
-
-if (event.light < 4){
+if (event.light < 4){//white pixels turn off
   colorWipe2(strip2.Color(0,   0,   0), 0);
 }
-
 }
-
-
-
-
